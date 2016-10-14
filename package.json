@@ -1,5 +1,5 @@
 { "name": "equal-pmb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Expect two values to be equal, for whatever latest notion of equality.",
   "keywords": [ "assert", "equality", "unit testing" ],
 

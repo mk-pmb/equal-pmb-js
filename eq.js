@@ -7,12 +7,14 @@ module.exports = (function setup() {
   // try { require('usnam-pmb'); } catch (ignore) {}
 
   EX = function (a, b) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
     assert.deepStrictEqual(a, b);
     return true;
   };
 
   EX.err = function (func, wantErr) {
     if ((typeof func) !== 'function') { throw new TypeError('need function'); }
+    if (arguments.length > 2) { throw new Error('too many values'); }
     var result, wasCaught = false;
     try {
       result = { ret: func() };

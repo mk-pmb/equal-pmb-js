@@ -11,6 +11,8 @@ ok(eq, true, true);
 no(eq, true, false);
 no(eq, true, 1);
 
+assert.throws(function () { eq(true, true, false); }, /too many values/);
+
 ok(eq, [ [ true ] ], [ [ true ] ]);
 no(eq, [ [ true ] ], [ [ false ] ]);
 no(eq, [ [ true ] ], [ [ 1 ] ]);
