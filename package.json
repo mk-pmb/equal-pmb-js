@@ -1,0 +1,31 @@
+{ "name": "equal-pmb",
+  "version": "0.1.0",
+  "description": "Expect two values to be equal, for whatever latest notion of equality.",
+  "keywords": [ "assert", "equality", "unit testing" ],
+
+  "author": "M.K. (https://github.com/mk-pmb)",
+  "homepage": "https://github.com/mk-pmb/equal-pmb-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mk-pmb/equal-pmb-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mk-pmb/equal-pmb-js/issues"
+  },
+
+  "private": false, "license": "ISC",
+
+  "main": "eq.js",
+  "scripts": { "test": "nodejs test/usage.js" },
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+
+  "dependencies": {
+    "is-error": "^2.2.0"
+  },
+
+
+  "npm vs. BOM = Unexpected token": "-*- coding: UTF-8 -*-"
+}
