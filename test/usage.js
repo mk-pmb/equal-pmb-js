@@ -2,20 +2,24 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var eq = require('equal-pmb'), assert = require('assert');
+var eq = require('equal-pmb'), ne = eq.ne, assert = require('assert');
 
-function ok(func, a, b) { func(a, b); /* does not throw */ }
-function no(func, a, b) { assert.throws(func.bind(null, a, b)); }
+function fails(func, a, b) { assert.throws(func.bind(null, a, b)); }
 
-ok(eq, true, true);
-no(eq, true, false);
-no(eq, true, 1);
+
+eq(true, true);
+fails(eq, true, false);
+fails(eq, true, 1);
+
+fails(ne, true, true);
+ne(true, false);
+ne(true, 1);
 
 assert.throws(function () { eq(true, true, false); }, /too many values/);
 
-ok(eq, [ [ true ] ], [ [ true ] ]);
-no(eq, [ [ true ] ], [ [ false ] ]);
-no(eq, [ [ true ] ], [ [ 1 ] ]);
+eq([ [ true ] ], [ [ true ] ]);
+fails(eq, [ [ true ] ], [ [ false ] ]);
+fails(eq, [ [ true ] ], [ [ 1 ] ]);
 
 
 function makeFail(msg, ErrCls) {
@@ -23,33 +27,35 @@ function makeFail(msg, ErrCls) {
   return function fail() { throw new ErrCls(msg); };
 }
 
-ok(eq.err, makeFail('noez!'), true);
-ok(eq.err, makeFail('noez!'), new Error('noez!'));
-ok(eq.err, makeFail('noez!'), 'Error: noez!');
-no(eq.err, makeFail('noez!'), 'noez!');
-no(eq.err, makeFail('noez!'));
-no(eq.err, makeFail('noez!'), '');
-no(eq.err, makeFail('noez!'), undefined);
-no(eq.err, makeFail('noez!'), null);
-no(eq.err, makeFail('noez!'), false);
-no(eq.err, makeFail('noez!'), [ [ true ] ]);
+eq.err(makeFail('noez!'), true);
+eq.err(makeFail('noez!'), new Error('noez!'));
+eq.err(makeFail('noez!'), 'Error: noez!');
+fails(eq.err, makeFail('noez!'), 'noez!');
+fails(eq.err, makeFail('noez!'));
+fails(eq.err, makeFail('noez!'), '');
+fails(eq.err, makeFail('noez!'), undefined);
+fails(eq.err, makeFail('noez!'), null);
+fails(eq.err, makeFail('noez!'), false);
+fails(eq.err, makeFail('noez!'), [ [ true ] ]);
 
 
 function makeReturn(val) {
   return function () { return val; };
 }
 
-ok(eq.err, makeReturn('hello'), { ret: 'hello' });
-no(eq.err, makeReturn('hello'), true);
-no(eq.err, makeReturn('hello'), new Error('hello'));
-no(eq.err, makeReturn('hello'), 'Error: hello');
-no(eq.err, makeReturn('hello'), 'hello');
-no(eq.err, makeReturn('hello'));
-no(eq.err, makeReturn('hello'), '');
-no(eq.err, makeReturn('hello'), undefined);
-no(eq.err, makeReturn('hello'), null);
-no(eq.err, makeReturn('hello'), false);
-no(eq.err, makeReturn('hello'), [ [ true ] ]);
+eq.err(makeReturn('hello'), { ret: 'hello' });
+fails(eq.err, makeReturn('hello'), true);
+fails(eq.err, makeReturn('hello'), new Error('hello'));
+fails(eq.err, makeReturn('hello'), 'Error: hello');
+fails(eq.err, makeReturn('hello'), 'hello');
+fails(eq.err, makeReturn('hello'));
+fails(eq.err, makeReturn('hello'), '');
+fails(eq.err, makeReturn('hello'), undefined);
+fails(eq.err, makeReturn('hello'), null);
+eq.err(makeReturn('hello'), false);
+eq.err(makeReturn(false), { ret: false });
+fails(eq.err, makeReturn('hello'), { ret: false });
+fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 
 
 
