@@ -4,12 +4,19 @@
 
 module.exports = (function setup() {
   var EX, assert = require('assert'), AssErr = assert.AssertionError,
-    isError = require('is-error');
+    is = require('typechecks-pmb'), isError = require('is-error'),
+    genDiffCtx = require('generic-diff-context');
   // try { require('usnam-pmb'); } catch (ignore) {}
 
   EX = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
-    assert.deepStrictEqual(ac, ex);
+    try {
+      assert.deepStrictEqual(ac, ex);
+    } catch (assErr) {
+      ex = EX.tryBetterDiff('deepStrictEqual', ac, ex);
+      if (ex) { assErr.message = ex; }
+      throw assErr;
+    }
     return true;
   };
 
@@ -80,6 +87,27 @@ module.exports = (function setup() {
 
 
   // EX.ret = nope, just use EX.err(…, false).
+
+  function type0f(x) {
+    if (x === null) { return 'null'; }
+    var t = typeof x;
+    if (t !== 'object') { return t; }
+    t = (is.ncls(x) || t);
+    return t;
+  }
+
+
+  EX.tryBetterDiff = function (oper, ac, ex) {
+    var diff, types = type0f(ac) + ':' + type0f(ex);
+    switch (types) {
+    case 'string:string':
+    case 'Array:Array':
+      diff = genDiffCtx(ac, ex, { unified: 2 });
+      diff = String(diff).replace(/(^|\n) /g, '$1=').replace(/\n/g, '\n    ');
+      return oper + ': ' + diff;
+    }
+    return;
+  };
 
 
 
