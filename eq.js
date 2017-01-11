@@ -4,9 +4,9 @@
 
 module.exports = (function setup() {
   var EX, assert = require('assert'), AssErr = assert.AssertionError,
-    is = require('typechecks-pmb'), isError = require('is-error'),
+    isError = require('is-error'),
     genDiffCtx = require('generic-diff-context');
-  // try { require('usnam-pmb'); } catch (ignore) {}
+  // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
   EX = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
@@ -23,9 +23,6 @@ module.exports = (function setup() {
 
   EX.fixThrow = function (x, ErrCls) {
     if (isError(x)) { return x; }
-    if (x instanceof Error) {
-      return x;     // https://github.com/Raynos/is-error/issues/4
-    }
     if (!ErrCls) { ErrCls = TypeError; }
     return new ErrCls('thrown value was not an error: ' + String(x));
   };
@@ -78,7 +75,7 @@ module.exports = (function setup() {
     } catch (notSameErr) {
       if (wasCaught) {
         // optimize error message
-        return EX(String(result), wantErr);
+        return EX.lines(String(result), String(wantErr));
       }
       throw notSameErr;
     }
@@ -88,26 +85,65 @@ module.exports = (function setup() {
 
   // EX.ret = nope, just use EX.err(…, false).
 
+  function strDiffMsg(ex, ac, opts) {
+    try {
+      return EX.ctrlCh(genDiffCtx(ex, ac, opts)
+        ).replace(/(^|\n) /g, '$1='
+        ).replace(/((?!\n)\s)\n/g, '$1¶\n'
+        ).replace(/\n/g, '\n    ');
+    } catch (diffErr) {
+      return 'unable to diff: ' + String(diffErr.message || diffErr);
+    }
+  }
+
+
   function type0f(x) {
     if (x === null) { return 'null'; }
     var t = typeof x;
     if (t !== 'object') { return t; }
-    t = (is.ncls(x) || t);
+    if (Array.isArray(x)) { return 'array'; }
+    if (Buffer.isBuffer(x)) { return 'buffer'; }
     return t;
   }
 
 
+  EX.ctrlCh = function (s) {
+    return String(s).replace(/\r/g, '\u219E\n').replace(/\t/g, '\u21B9');
+  };
+
+
   EX.tryBetterDiff = function (oper, ac, ex) {
-    var diff, types = type0f(ac) + ':' + type0f(ex);
+    var diffOpts, types = type0f(ac) + ':' + type0f(ex);
     switch (types) {
     case 'string:string':
-    case 'Array:Array':
-      diff = genDiffCtx(ac, ex, { unified: 2 });
-      diff = String(diff).replace(/(^|\n) /g, '$1=').replace(/\n/g, '\n    ');
-      return oper + ': ' + diff;
+      diffOpts = { unified: 64 };
+      break;
+    case 'array:array':
+      diffOpts = { unified: 2 };
+      break;
     }
+    if (diffOpts) { return (oper + ': ' + strDiffMsg(ex, ac, diffOpts)); }
     return;
   };
+
+
+  EX.lines = function equal(ac, ex) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
+    if (ac.split) { ac = ac.split('\n'); }
+    if (ex.split) { ex = ex.split('\n'); }
+    return EX(ac, ex);
+  };
+
+
+  EX.chars = function equal(ac, ex) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
+    return EX(String(ac), String(ex));
+  };
+
+
+
+
+
 
 
 

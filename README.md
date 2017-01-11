@@ -17,6 +17,7 @@ my latest notion of JavaScript value equality.
 
 Usage
 -----
+
 see [test/usage.js](test/usage.js)
 
 <!--!#include file="test/usage.js" start="  //#u" stop="  //#r"
