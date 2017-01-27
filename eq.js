@@ -92,7 +92,10 @@ module.exports = (function setup() {
         ).replace(/((?!\n)\s)\n/g, '$1¶\n'
         ).replace(/\n/g, '\n    ');
     } catch (diffErr) {
-      return 'unable to diff: ' + String(diffErr.message || diffErr);
+      if (diffErr && (typeof diffErr.message === 'string')) {
+        diffErr.message = 'unable to diff: ' + diffErr.message;
+      }
+      throw diffErr;
     }
   }
 
@@ -122,7 +125,13 @@ module.exports = (function setup() {
       diffOpts = { unified: 2 };
       break;
     }
-    if (diffOpts) { return (oper + ': ' + strDiffMsg(ex, ac, diffOpts)); }
+    if (diffOpts) {
+      try {
+        return (oper + ': ' + strDiffMsg(ex, ac, diffOpts));
+      } catch (cannotDiff) {
+        return;
+      }
+    }
     return;
   };
 
