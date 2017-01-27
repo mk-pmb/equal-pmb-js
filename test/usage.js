@@ -59,25 +59,25 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 
 
 (function compareTexts() {
-  function cmp() { eq[cmp.mode](cmp.a, cmp.b); }
+  function cmp() { eq[cmp.mode](cmp.modif, cmp.orig); }
   function par2nl(s) { return s.replace(/¶/g, '\n'); }
   var tx = "hello¶  world¶  how  ¶\tdo you¶do?";
 
-  cmp.a = par2nl(tx);
-  cmp.b = cmp.a;
+  cmp.orig = par2nl(tx);
+  cmp.modif = cmp.orig;
   cmp.mode = 'lines';
   cmp();
   cmp.mode = 'chars';
   cmp();
 
-  cmp.b += '\n';
+  cmp.modif += '\n';
   cmp.mode = 'lines';
   eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -3,3 +3,3 @@",
     "=  how  ¶",  // eq adds ¶ to show you the line ends with whitespace
     "=\u21B9do you",  // eq replaces \t with two bar arrows so you see it
     "-do?",
-    "+do?",
     "\\ ¬¶",
+    "+do?",
     ].join('\n    '));
   cmp.mode = 'chars';
   eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -1,33 +1,33 @@",
@@ -87,9 +87,53 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
     "^\u21B9do you",
     "^do",
     "-?",
-    "+?",
     "\\ ¬¶",
+    "+?",
     ].join('\n    '));
+
+
+}());
+
+
+(function compareObjects() {
+  function cmp() { eq(cmp.modif, cmp.orig); }
+  function deepCopy(x) { return JSON.parse(JSON.stringify(x)); }
+
+  cmp.orig = { a: 'B', A: 'z',
+            yn: { y: true, n: false },
+            say: { hi: 'hello', cu: 'goodbye' },
+            nums: [ 0, 1, 2, 3, 4 ],
+            };
+  cmp.modif = deepCopy(cmp.orig);
+  cmp();
+
+  cmp.modif = deepCopy(cmp.orig);
+  cmp.modif.yn = Object.assign({}, cmp.orig.yn);
+  cmp();
+
+  cmp.modif = deepCopy(cmp.orig);
+  cmp.modif.yn = Object.assign(Object.create(null), cmp.orig.yn);
+  eq.err(cmp, 'AssertionError: deepStrictEqual:' +
+    ' No visible difference in dump.' +
+    ' Maybe a prototype mismatch?');
+
+  cmp.modif.yn['?'] = 'dunno';
+  cmp.modif.say.cu = 'farewell';
+  cmp.modif.nums.push(Number.POSITIVE_INFINITY);
+  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -8 +8,2 @@",
+    "-     4 ],",
+    "+     4,",
+    "+     Infinity ],",
+    "@@ -10 +11 @@",
+    "-   { cu: 'goodbye',",
+    "+   { cu: 'farewell',",
+    "@@ -13 +14,2 @@",
+    "-   { n: false,",
+    "+   { '?': 'dunno',",
+    "+     n: false,",
+
+    ].join('\n    '));
+
 
 
 }());
@@ -101,4 +145,6 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 
 
 
-console.log("+OK tests passed.");   //= "+OK tests passed."
+
+
+/*scroll*/

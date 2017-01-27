@@ -1,5 +1,5 @@
 { "name": "equal-pmb",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Expect two values to be equal, for whatever latest notion of equality.",
   "keywords": [ "assert", "equality", "unit testing" ],
 
@@ -16,15 +16,20 @@
   "private": false, "license": "ISC",
 
   "main": "eq.js",
-  "scripts": { "test": "nodejs test/usage.js" },
+  "scripts": { "test": "nodejs test/all.js" },
   "directories": {
     "doc": "doc",
     "test": "test"
   },
 
   "dependencies": {
+    "deepsortobj": "^0.1.0",
     "generic-diff-context": "^0.2.1",
-    "is-error": "^2.2.1"
+    "is-error": "^2.2.1",
+    "util-inspect": "^0.1.8"
+  },
+  "devDependencies": {
+    "usnam-pmb": "^0.2.2"
   },
 
 

@@ -5,6 +5,8 @@
 module.exports = (function setup() {
   var EX, assert = require('assert'), AssErr = assert.AssertionError,
     isError = require('is-error'),
+    sortObj = require('deepsortobj'),
+    inspect = require('util').inspect,
     genDiffCtx = require('generic-diff-context');
   // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
@@ -18,6 +20,17 @@ module.exports = (function setup() {
       throw assErr;
     }
     return true;
+  };
+
+
+  EX.examineThoroughly = function (x) {
+    return inspect(sortObj(x), {
+      breakLength: 3,
+      colors: false,
+      customInspect: false,
+      depth: null,
+      maxArrayLength: null,
+    });
   };
 
 
@@ -124,13 +137,22 @@ module.exports = (function setup() {
     case 'array:array':
       diffOpts = { unified: 2 };
       break;
+    default:
+      ac = EX.examineThoroughly(ac).split(/\n/);
+      ex = EX.examineThoroughly(ex).split(/\n/);
+      diffOpts = { unified: 0, finalLf: false,
+        ifSame: 'No visible difference in dump. Maybe a prototype mismatch?'
+        };
+      break;
     }
     if (diffOpts) {
       try {
-        return (oper + ': ' + strDiffMsg(ex, ac, diffOpts));
+        ac = (strDiffMsg(ex, ac, diffOpts) || diffOpts.ifSame);
       } catch (cannotDiff) {
         return;
       }
+      if (!ac) { return; }
+      return (oper + ': ' + ac);
     }
     return;
   };
@@ -138,8 +160,8 @@ module.exports = (function setup() {
 
   EX.lines = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
-    if (ac.split) { ac = ac.split('\n'); }
-    if (ex.split) { ex = ex.split('\n'); }
+    if (ac.split) { ac = ac.split(/\n/); }
+    if (ex.split) { ex = ex.split(/\n/); }
     return EX(ac, ex);
   };
 
@@ -148,6 +170,8 @@ module.exports = (function setup() {
     if (arguments.length > 2) { throw new Error('too many values'); }
     return EX(String(ac), String(ex));
   };
+
+
 
 
 
