@@ -92,6 +92,24 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
     ].join('\n    '));
 
 
+  cmp.orig = cmp.modif = '';
+  cmp.mode = 'lines';
+  cmp();
+  cmp.mode = 'chars';
+  cmp();
+
+  cmp.modif = 'Hello World';
+  cmp.mode = 'lines';
+  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -1,0 +1 @@",
+    "+Hello World",
+    "\\ ¬¶",
+    ].join('\n    '));
+  cmp.mode = 'chars';
+  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -1,0 +1,11 @@",
+    "+Hello World",
+    "\\ ¬¶",
+    ].join('\n    '));
+
 }());
 
 
