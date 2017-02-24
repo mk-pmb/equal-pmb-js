@@ -22,6 +22,8 @@ module.exports = (function setup() {
     return true;
   };
 
+  EX.deepStrictEqual = function () { return EX.apply(this, arguments); };
+
 
   EX.examineThoroughly = function (x) {
     return inspect(sortObj(x), {
