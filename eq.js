@@ -26,13 +26,15 @@ module.exports = (function setup() {
 
 
   EX.examineThoroughly = function (x) {
-    return inspect(sortObj(x), {
+    x = inspect(sortObj(x), {
       breakLength: 3,
       colors: false,
       customInspect: false,
       depth: null,
       maxArrayLength: null,
     });
+    x = x.replace(/(:) (\n)/g, '$1$2'); // node v6.10.0 inspect
+    return x;
   };
 
 
