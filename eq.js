@@ -15,8 +15,7 @@ module.exports = (function setup() {
     try {
       assert.deepStrictEqual(ac, ex);
     } catch (assErr) {
-      ex = EX.tryBetterDiff('deepStrictEqual', ac, ex);
-      if (ex) { assErr.message = ex; }
+      EX.tryBetterErrMsg(assErr, EX.tryBetterDiff('deepStrictEqual', ac, ex));
       throw assErr;
     }
     return true;
@@ -34,6 +33,7 @@ module.exports = (function setup() {
       maxArrayLength: null,
     });
     x = x.replace(/(:) (\n)/g, '$1$2'); // node v6.10.0 inspect
+    x = EX.fixCutoffColorCodes(x);
     return x;
   };
 
@@ -159,6 +159,24 @@ module.exports = (function setup() {
       return (oper + ': ' + ac);
     }
     return;
+  };
+
+
+  EX.fixCutoffColorCodes = function (s) {
+    if (s.indexOf('\x1B[') < 0) { return s; }
+    // strip trailing incomplete color code
+    s = s.replace(/\x1B(\[[ -@]*)$/, '^$1');
+    // reset color code after message
+    s += '\x1B[0m';
+    return s;
+  };
+
+
+  EX.tryBetterErrMsg = function (err, msg) {
+    if (!msg) { msg = String(err.message || err); }
+    msg = EX.fixCutoffColorCodes(msg);
+    err.message = msg;
+    return err;
   };
 
 
