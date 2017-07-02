@@ -8,4 +8,5 @@ require('./usage.js');
 
 
 
-console.log("+OK all tests passed.");   //= "+OK all tests passed."
+
+require('equal-pmb').onExitCode(0, "+OK all tests passed.");

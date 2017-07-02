@@ -10,6 +10,9 @@ module.exports = (function setup() {
     genDiffCtx = require('generic-diff-context');
   // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
+  function ifFun(x, d) { return ((typeof x) === 'function' ? x : d); }
+  function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
+
   EX = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     try {
@@ -65,7 +68,7 @@ module.exports = (function setup() {
 
 
   EX.err = function (func, wantErr) {
-    if ((typeof func) !== 'function') { throw new TypeError('need function'); }
+    if (!ifFun(func)) { throw new TypeError('need function'); }
     if (arguments.length > 2) { throw new Error('too many values'); }
     var result, wasCaught = false;
     try {
@@ -75,9 +78,7 @@ module.exports = (function setup() {
       wasCaught = true;
     }
     if (wasCaught) {
-      if ((typeof wantErr) === 'function') {
-        if (result instanceof wantErr) { return true; }
-      }
+      if (instanceof_safe(result, wantErr)) { return true; }
       if (isError(result)) {
         if (wantErr === true) { return true; }
       } else {
@@ -191,6 +192,16 @@ module.exports = (function setup() {
   EX.chars = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     return EX(String(ac), String(ex));
+  };
+
+
+  EX.onExitCode = function (ex, thenFunc, elseFunc) {
+    process.once('exit', function (ac) {
+      var hnd = (ac === ex ? thenFunc : elseFunc);
+      if (!hnd) { return; }
+      if (ifFun(hnd)) { return hnd(ac); }
+      console.log(hnd);
+    });
   };
 
 
