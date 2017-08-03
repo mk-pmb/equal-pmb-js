@@ -188,7 +188,7 @@ module.exports = (function setup() {
   };
 
 
-  EX.lines = function equal(ac, ex) {
+  EX.lines = function (ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     if (ac.split) { ac = ac.split(/\n/); }
     if (ex.split) { ex = ex.split(/\n/); }
@@ -196,7 +196,7 @@ module.exports = (function setup() {
   };
 
 
-  EX.chars = function equal(ac, ex) {
+  EX.chars = function (ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     return EX(String(ac), String(ex));
   };
@@ -212,16 +212,21 @@ module.exports = (function setup() {
   };
 
 
-  EX.lists = function equal(ac, ex) {
+  EX.lists = function cmpLists(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     ac = orf(ac);
     ex = orf(ex);
     //if (!isAry(ex)) { throw new TypeError('Expectation must be an Array'); }
     //if (!isAry(ac)) { EX('(¬Array) ' + ac, ex); }
     var nAc = ifNum(ac.length, 0), nEx = ifNum(ex.length, 0),
-      nMin = Math.min(nAc, nEx), nSame = 0, ass = null;
+      nMin = Math.min(nAc, nEx), nSame = 0, ass = null,
+      dulo = (+EX.lists.dumpLongerList || 0);
     try {
       for (0; nSame < nMin; nSame += 1) { EX(ac[nSame], ex[nSame]); }
+      if ((nAc !== nEx) && dulo) {
+        console.log(nAc, nEx, arSlc.call((nAc > nEx ? ac : ex),
+          nMin, nMin + dulo));
+      }
     } catch (ignore) {}
     try {
       return dsEq(arSlc.call(ac, nSame, nAc), arSlc.call(ex, nSame, nEx));
@@ -231,6 +236,7 @@ module.exports = (function setup() {
     EX.tryBetterErrMsg(ass, { head: nSame + ' common items, then: ' });
     throw ass;
   };
+  EX.lists.dumpLongerList = 0;
 
 
 
