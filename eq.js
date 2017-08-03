@@ -4,22 +4,28 @@
 
 module.exports = (function setup() {
   var EX, assert = require('assert'), AssErr = assert.AssertionError,
+    dsEq = assert.deepStrictEqual,
     isError = require('is-error'),
+    isAry = Array.isArray, arSlc = Array.prototype.slice,
     sortObj = require('deepsortobj'),
     inspect = require('util').inspect,
     genDiffCtx = require('generic-diff-context');
   // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
   function ifFun(x, d) { return ((typeof x) === 'function' ? x : d); }
+  function ifNum(x, d) { return (x === +x ? x : d); }
   function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
+  function orf(x) { return (x || false); }
+
 
   EX = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     try {
       assert.deepStrictEqual(ac, ex);
-    } catch (assErr) {
-      EX.tryBetterErrMsg(assErr, EX.tryBetterDiff('deepStrictEqual', ac, ex));
-      throw assErr;
+    } catch (ass) {
+      EX.tryBetterErrMsg(ass, { msg:
+        EX.tryBetterDiff('deepStrictEqual', ac, ex) });
+      throw ass;
     }
     return true;
   };
@@ -122,7 +128,7 @@ module.exports = (function setup() {
     if (x === null) { return 'null'; }
     var t = typeof x;
     if (t !== 'object') { return t; }
-    if (Array.isArray(x)) { return 'array'; }
+    if (isAry(x)) { return 'array'; }
     if (Buffer.isBuffer(x)) { return 'buffer'; }
     return t;
   }
@@ -173,8 +179,9 @@ module.exports = (function setup() {
   };
 
 
-  EX.tryBetterErrMsg = function (err, msg) {
-    if (!msg) { msg = String(err.message || err); }
+  EX.tryBetterErrMsg = function (err, opt) {
+    var msg = String(opt.msg || err.message || err);
+    msg = (opt.head || '') + msg + (opt.tail || '');
     msg = EX.fixCutoffColorCodes(msg);
     err.message = msg;
     return err;
@@ -202,6 +209,27 @@ module.exports = (function setup() {
       if (ifFun(hnd)) { return hnd(ac); }
       console.log(hnd);
     });
+  };
+
+
+  EX.lists = function equal(ac, ex) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
+    ac = orf(ac);
+    ex = orf(ex);
+    //if (!isAry(ex)) { throw new TypeError('Expectation must be an Array'); }
+    //if (!isAry(ac)) { EX('(¬Array) ' + ac, ex); }
+    var nAc = ifNum(ac.length, 0), nEx = ifNum(ex.length, 0),
+      nMin = Math.min(nAc, nEx), nSame = 0, ass = null;
+    try {
+      for (0; nSame < nMin; nSame += 1) { EX(ac[nSame], ex[nSame]); }
+    } catch (ignore) {}
+    try {
+      return dsEq(arSlc.call(ac, nSame, nAc), arSlc.call(ex, nSame, nEx));
+    } catch (err) {
+      ass = err;
+    }
+    EX.tryBetterErrMsg(ass, { head: nSame + ' common items, then: ' });
+    throw ass;
   };
 
 

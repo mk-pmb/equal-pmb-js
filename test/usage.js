@@ -157,6 +157,54 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 }());
 
 
+(function compareLists() {
+  var push = Array.prototype.push, a, b;
+  function cmp() { eq.lists(a, b); }
+  function reverseCmp() { eq.lists(b, a); }
+  function dumbify(arr) { return Object.assign({ length: arr.length }, arr); }
+
+  a = [ 'tomato', 'lettuce', 'bacon' ];
+  b = dumbify(a);
+  cmp();
+  reverseCmp();
+
+  push.call(b, 'cheese');
+  eq.err(cmp, "AssertionError: 3 common items, then: " +
+    "[] deepStrictEqual [ 'cheese' ]");
+  eq.err(reverseCmp, "AssertionError: 3 common items, then: " +
+    "[ 'cheese' ] deepStrictEqual []");
+
+  a.push('onion', 'cheese');
+  eq.err(cmp, "AssertionError: 3 common items, then: " +
+    "[ 'onion', 'cheese' ] deepStrictEqual [ 'cheese' ]");
+  eq.err(reverseCmp, "AssertionError: 3 common items, then: " +
+    "[ 'cheese' ] deepStrictEqual [ 'onion', 'cheese' ]");
+
+  b[3] = 'onion';
+  b[4] = 'cheese';
+  eq.err(cmp, "AssertionError: 4 common items, then: " +
+    "[ 'cheese' ] deepStrictEqual []");
+  eq.err(reverseCmp, "AssertionError: 4 common items, then: " +
+    "[] deepStrictEqual [ 'cheese' ]");
+  // why?
+  eq([a.length, b.length], [5, 4]);
+
+  b.length = 5;
+  cmp();    // fixed.
+  reverseCmp();
+
+
+
+}());
+
+
+
+
+
+
+
+
+
 
 
 
