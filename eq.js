@@ -8,6 +8,7 @@ module.exports = (function setup() {
     isError = require('is-error'),
     isAry = Array.isArray, arSlc = Array.prototype.slice,
     sortObj = require('deepsortobj'),
+    toStr = require('safe-tostring-pmb'),
     inspect = require('util').inspect,
     genDiffCtx = require('generic-diff-context');
   // try { re//quire('usnam-pmb'); } catch (ignore) {}
@@ -50,7 +51,7 @@ module.exports = (function setup() {
   EX.fixThrow = function (x, ErrCls) {
     if (isError(x)) { return x; }
     if (!ErrCls) { ErrCls = TypeError; }
-    return new ErrCls('thrown value was not an error: ' + String(x));
+    return new ErrCls('thrown value was not an error: ' + toStr(x));
   };
 
 
@@ -99,7 +100,7 @@ module.exports = (function setup() {
     } catch (notSameErr) {
       if (wasCaught) {
         // optimize error message
-        return EX.lines(String(result), String(wantErr));
+        return EX.lines(toStr(result), toStr(wantErr));
       }
       throw notSameErr;
     }
@@ -135,7 +136,7 @@ module.exports = (function setup() {
 
 
   EX.ctrlCh = function (s) {
-    return String(s).replace(/\r/g, '\u219E\n').replace(/\t/g, '\u21B9');
+    return toStr(s).replace(/\r/g, '\u219E\n').replace(/\t/g, '\u21B9');
   };
 
 
@@ -180,7 +181,7 @@ module.exports = (function setup() {
 
 
   EX.tryBetterErrMsg = function (err, opt) {
-    var msg = String(opt.msg || err.message || err);
+    var msg = toStr(opt.msg || err.message || err);
     msg = (opt.head || '') + msg + (opt.tail || '');
     msg = EX.fixCutoffColorCodes(msg);
     err.message = msg;
@@ -198,7 +199,7 @@ module.exports = (function setup() {
 
   EX.chars = function (ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
-    return EX(String(ac), String(ex));
+    return EX(toStr(ac), toStr(ex));
   };
 
 
