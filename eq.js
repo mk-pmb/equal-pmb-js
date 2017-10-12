@@ -95,7 +95,10 @@ EX.nse = EX.notStrictEqual = function notStrictEqual(ac, ex) {
 
 
 EX.err = function (func, wantErr) {
-  if (!ifFun(func)) { throw new TypeError('need function'); }
+  if (!ifFun(func)) {
+    throw new TypeError('equal.err needs a function, not ' +
+      EX.examineThoroughly(func));
+  }
   if (arguments.length > 2) { throw new Error('too many values'); }
   var result, wasCaught = false;
   try {
@@ -274,6 +277,7 @@ EX.named = (function (popping, nt) {
     if (ifFun(v)) { nt[k] = popping(v); }
   });
   popping = null;
+  nt.named = nt;
   return nt;
 }(function popping(f) {
   return function namedTestProxy(name) {
