@@ -13,13 +13,16 @@ module.exports = (function setup() {
     genDiffCtx = require('generic-diff-context');
   // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
+  function isStr(x, no) { return (((typeof x) === 'string') || no); }
   function ifFun(x, d) { return ((typeof x) === 'function' ? x : d); }
   function ifNum(x, d) { return (x === +x ? x : d); }
   function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
   function orf(x) { return (x || false); }
 
 
-  EX = function equal(ac, ex) {
+  EX = function equal() { return EX.deepStrictEqual.apply(this, arguments); };
+
+  EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
     try {
       assert.deepStrictEqual(ac, ex);
@@ -31,7 +34,18 @@ module.exports = (function setup() {
     return true;
   };
 
-  EX.deepStrictEqual = function () { return EX.apply(this, arguments); };
+
+  EX.eq = EX.strictEqual = function equal(ac, ex) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
+    try {
+      assert.strictEqual(ac, ex);
+    } catch (ass) {
+      EX.tryBetterErrMsg(ass, { msg:
+        EX.tryBetterDiff('!==', ac, ex) });
+      throw ass;
+    }
+    return true;
+  };
 
 
   EX.examineThoroughly = function (x) {
@@ -67,10 +81,17 @@ module.exports = (function setup() {
   };
 
 
-  EX.ne = EX.unequal = function unequal(ac, ex) {
+  EX.ne = EX.notDeepStrictEqual = function notDeepStrictEqual(ac, ex) {
     if (arguments.length > 2) { throw new Error('too many values'); }
-    return EX.refute(EX, [ac, ex], { message: 'unexpected equality',
-      actual: ac, expected: ex });
+    return EX.refute(EX.deepStrictEqual, [ac, ex],
+      { message: 'unexpected deep equality', actual: ac, expected: ex });
+  };
+
+
+  EX.nse = EX.notStrictEqual = function notStrictEqual(ac, ex) {
+    if (arguments.length > 2) { throw new Error('too many values'); }
+    return EX.refute(EX.strictEqual, [ac, ex],
+      { message: 'unexpected strict equality', actual: ac, expected: ex });
   };
 
 
@@ -80,6 +101,7 @@ module.exports = (function setup() {
     var result, wasCaught = false;
     try {
       result = { ret: func() };
+      if (!wantErr) { return true; }
     } catch (funcErr) {
       result = funcErr;
       wasCaught = true;
@@ -91,10 +113,12 @@ module.exports = (function setup() {
       } else {
         result = EX.fixThrow(result);
       }
-      if (wantErr === false) { throw result; }
-      if ((typeof wantErr) === 'string') { result = String(result); }
+      if (!wantErr) { throw result; }
+      if (wantErr instanceof RegExp) {
+        if (wantErr.exec(String(result))) { return true; }
+      }
+      if (isStr(wantErr)) { result = String(result); }
     }
-    if (wantErr === false) { return true; }
     try {
       return EX(result, wantErr);
     } catch (notSameErr) {
@@ -117,7 +141,7 @@ module.exports = (function setup() {
         ).replace(/((?!\n)\s)\n/g, '$1¶\n'
         ).replace(/\n/g, '\n    ');
     } catch (diffErr) {
-      if (diffErr && (typeof diffErr.message === 'string')) {
+      if (diffErr && isStr(diffErr.message)) {
         diffErr.message = 'unable to diff: ' + diffErr.message;
       }
       throw diffErr;
@@ -180,10 +204,13 @@ module.exports = (function setup() {
   };
 
 
+  EX.testNamesStack = [];
   EX.tryBetterErrMsg = function (err, opt) {
-    var msg = toStr(opt.msg || err.message || err);
+    var msg = toStr(opt.msg || err.message || err),
+      where = EX.testNamesStack.map(JSON.stringify).join('>');
     msg = (opt.head || '') + msg + (opt.tail || '');
     msg = EX.fixCutoffColorCodes(msg);
+    if (where) { msg = '@' + where + ': ' + msg; }
     err.message = msg;
     return err;
   };
@@ -240,6 +267,28 @@ module.exports = (function setup() {
   EX.lists.dumpLongerList = 0;
 
 
+  EX.named = (function (popping, nt) {
+    nt = popping(function (testFunc) { testFunc(); });
+    Object.keys(EX).forEach(function (k, v) {
+      if (k === 'named') { return; }
+      v = EX[k];
+      if (ifFun(v)) { nt[k] = popping(v); }
+    });
+    popping = null;
+    return nt;
+  }(function popping(f) {
+    return function namedTestProxy(name) {
+      EX.testNamesStack.push(name);
+      var args = arSlc.call(arguments, 1);
+      try {
+        f.apply(this, args);
+      } catch (err) {
+        EX.testNamesStack.pop();
+        throw err;
+      }
+      EX.testNamesStack.pop();
+    };
+  }));
 
 
 

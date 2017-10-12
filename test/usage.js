@@ -48,10 +48,10 @@ fails(eq.err, makeReturn('hello'), true);
 fails(eq.err, makeReturn('hello'), new Error('hello'));
 fails(eq.err, makeReturn('hello'), 'Error: hello');
 fails(eq.err, makeReturn('hello'), 'hello');
-fails(eq.err, makeReturn('hello'));
-fails(eq.err, makeReturn('hello'), '');
-fails(eq.err, makeReturn('hello'), undefined);
-fails(eq.err, makeReturn('hello'), null);
+eq.err(makeReturn('hello'));
+eq.err(makeReturn('hello'), '');
+eq.err(makeReturn('hello'), undefined);
+eq.err(makeReturn('hello'), null);
 eq.err(makeReturn('hello'), false);
 eq.err(makeReturn(false), { ret: false });
 fails(eq.err, makeReturn('hello'), { ret: false });
@@ -196,6 +196,14 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 
 
 }());
+
+
+eq.named('named tests', function () {
+  eq.named.deepStrictEqual('simple eq', 1, 1);
+  eq.err(function () {
+    eq.named.deepStrictEqual('simple ne', 1, 0);
+  }, /^AssertionError: @"named tests">"simple ne": deepStrictEqual: @@/);
+});
 
 
 
