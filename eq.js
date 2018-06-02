@@ -2,7 +2,8 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var EX, assert = require('assert'), AssErr = assert.AssertionError,
+var EX, assert = require('assert'), assErrCode = 'ERR_ASSERTION',
+  assErrName = 'AssertionError', AssErr = assert[assErrName],
   dsEq = assert.deepStrictEqual,
   isError = require('is-error'),
   isAry = Array.isArray, arSlc = Array.prototype.slice,
@@ -62,7 +63,10 @@ EX.examineThoroughly = function (x) {
 
 
 EX.fixThrow = function (x, ErrCls) {
-  if (isError(x)) { return x; }
+  if (isError(x)) {
+    EX.fixAssErrNameInplace(x);
+    return x;
+  }
   if (!ErrCls) { ErrCls = TypeError; }
   return new ErrCls('thrown value was not an error: ' + toStr(x));
 };
@@ -72,11 +76,26 @@ EX.refute = function (func, args, shallNotPass) {
   try {
     func.apply(null, args);
   } catch (caught) {
-    shallNotPass = EX.fixThrow(caught);
-    if (shallNotPass.name === 'AssertionError') { return true; }
-    throw shallNotPass;
+    return EX.verifyAssErr(caught);
   }
   throw new AssErr(shallNotPass || { message: 'E_UNEXPECTED' });
+};
+
+
+EX.fixAssErrNameInplace = function (x) {
+  var n = (x && isStr(x.name) && x.name);
+  if (!n) { return x; }
+  if (n.startsWith(assErrName + ' [')) { x.name = assErrName; }
+  return x;
+};
+
+
+EX.verifyAssErr = function (x) {
+  var e = EX.fixThrow(x);
+  EX.fixAssErrNameInplace(e);
+  if (e.name === assErrName) { return true; }
+  if (e.code === assErrCode) { return true; }
+  throw e;
 };
 
 
@@ -208,6 +227,7 @@ EX.fixCutoffColorCodes = function (s) {
 
 EX.testNamesStack = [];
 EX.tryBetterErrMsg = function (err, opt) {
+  EX.fixAssErrNameInplace(err);
   var msg = toStr(opt.msg || err.message || err),
     where = EX.testNamesStack.map(JSON.stringify).join('>');
   msg = (opt.head || '') + msg + (opt.tail || '');
