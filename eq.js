@@ -10,6 +10,7 @@ var EX, assert = require('assert'), assErrCode = 'ERR_ASSERTION',
   sortObj = require('deepsortobj'),
   toStr = require('safe-tostring-pmb'),
   inspect = require('util').inspect,
+  univeil = require('univeil'),
   genDiffCtx = require('generic-diff-context');
 // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
@@ -19,11 +20,20 @@ function ifNum(x, d) { return (x === +x ? x : d); }
 function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
 function orf(x) { return (x || false); }
 
+function buf2str(x) {
+  return univeil.jsonify(x.toString('latin1')).slice(1, -1);
+}
+
+function maxArgs(args, max) {
+  if (args.length > max) { throw new Error('too many values'); }
+}
+
 
 EX = function equal() { return EX.deepStrictEqual.apply(this, arguments); };
 
+
 EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   try {
     assert.deepStrictEqual(ac, ex);
   } catch (ass) {
@@ -36,7 +46,7 @@ EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
 
 
 EX.eq = EX.strictEqual = function equal(ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   try {
     assert.strictEqual(ac, ex);
   } catch (ass) {
@@ -100,14 +110,14 @@ EX.verifyAssErr = function (x) {
 
 
 EX.ne = EX.notDeepStrictEqual = function notDeepStrictEqual(ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   return EX.refute(EX.deepStrictEqual, [ac, ex],
     { message: 'unexpected deep equality', actual: ac, expected: ex });
 };
 
 
 EX.nse = EX.notStrictEqual = function notStrictEqual(ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   return EX.refute(EX.strictEqual, [ac, ex],
     { message: 'unexpected strict equality', actual: ac, expected: ex });
 };
@@ -118,7 +128,7 @@ EX.err = function (func, wantErr) {
     throw new TypeError('equal.err needs a function, not ' +
       EX.examineThoroughly(func));
   }
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   var result, wasCaught = false;
   try {
     result = { ret: func() };
@@ -239,7 +249,7 @@ EX.tryBetterErrMsg = function (err, opt) {
 
 
 EX.lines = function (ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   if (ac.split) { ac = ac.split(/\n/); }
   if (ex.split) { ex = ex.split(/\n/); }
   return EX(ac, ex);
@@ -247,7 +257,7 @@ EX.lines = function (ac, ex) {
 
 
 EX.chars = function (ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   return EX(toStr(ac), toStr(ex));
 };
 
@@ -263,7 +273,7 @@ EX.onExitCode = function (ex, thenFunc, elseFunc) {
 
 
 EX.lists = function cmpLists(ac, ex) {
-  if (arguments.length > 2) { throw new Error('too many values'); }
+  maxArgs(arguments, 2);
   ac = orf(ac);
   ex = orf(ex);
   //if (!isAry(ex)) { throw new TypeError('Expectation must be an Array'); }
@@ -315,6 +325,13 @@ EX.named = (function (popping, nt) {
 
 
 
+EX.buf = function cmpBuffers(ac, ex, enc) {
+  if (!Buffer.isBuffer(ac)) {
+    throw new AssErr('Expected a buffer but got: ' + toStr(ac));
+  }
+  if (!Buffer.isBuffer(ex)) { ex = Buffer.from(ex, enc); }
+  return EX(buf2str(ac), buf2str(ex));
+};
 
 
 
