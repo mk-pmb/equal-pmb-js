@@ -26,6 +26,14 @@ see [test/usage.js](test/usage.js)
 
 
 
+Caveats
+-------
+
+* `NaN` is treated as self-equal for top-level values.
+  I consider this a feature.
+  Future versions may treat it self-equal even when deep-comparing containers.
+
+
 
 <!--#toc stop="scan" -->
 

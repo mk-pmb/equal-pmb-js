@@ -32,8 +32,18 @@ function maxArgs(args, max) {
 EX = function equal() { return EX.deepStrictEqual.apply(this, arguments); };
 
 
+function nonStandardObviousEq(ac, ex) {
+  if (Number.isNaN(ex)) {
+    if (Number.isNaN(ac)) { return true; }
+    throw new AssErr('Expected NaN but got: ' + toStr(ac));
+  }
+  return false;
+}
+
+
 EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
   maxArgs(arguments, 2);
+  if (nonStandardObviousEq(ac, ex)) { return true; }
   try {
     assert.deepStrictEqual(ac, ex);
   } catch (ass) {
@@ -47,6 +57,7 @@ EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
 
 EX.eq = EX.strictEqual = function equal(ac, ex) {
   maxArgs(arguments, 2);
+  if (nonStandardObviousEq(ac, ex)) { return true; }
   try {
     assert.strictEqual(ac, ex);
   } catch (ass) {
