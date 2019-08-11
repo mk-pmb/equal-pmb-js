@@ -202,7 +202,8 @@ eq.named('named tests', function () {
   eq.named.deepStrictEqual('simple eq', 1, 1);
   eq.err(function () {
     eq.named.deepStrictEqual('simple ne', 1, 0);
-  }, /^AssertionError: @"named tests">"simple ne": deepStrictEqual: @@/);
+  }, 'AssertionError: @"named tests">"simple ne": ' +
+    'deepStrictEqual: expected 0 but got 1 (d=+1, +∞%)');
 });
 
 

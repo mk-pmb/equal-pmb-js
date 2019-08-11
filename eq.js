@@ -206,6 +206,22 @@ EX.ctrlCh = function (s) {
 };
 
 
+function signed(x) {
+  var s = String(x).replace(/^(\-?)Infinity$/, '$1∞');
+  if (x < 0) { return s; }
+  if (x > 0) { return '+' + s; }
+  return '±' + s;
+}
+
+function numDiff(ac, ex) {
+  var d = ac - ex, r = 'd=' + signed(d);
+  if (Number.isFinite(d)) {
+    r += ', ' + signed(Math.round(1e6 * d) / (1e4 * ex)) + '%';
+  }
+  return r;
+}
+
+
 EX.tryBetterDiff = function (oper, ac, ex) {
   var diffOpts, types = type0f(ac) + ':' + type0f(ex);
   switch (types) {
@@ -215,6 +231,9 @@ EX.tryBetterDiff = function (oper, ac, ex) {
   case 'array:array':
     diffOpts = { unified: 2 };
     break;
+  case 'number:number':
+    return (oper + ': expected ' + ex + ' but got ' + ac +
+      ' (' + numDiff(ac, ex) + ')');
   default:
     ac = EX.examineThoroughly(ac).split(/\n/);
     ex = EX.examineThoroughly(ex).split(/\n/);
