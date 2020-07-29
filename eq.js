@@ -11,6 +11,8 @@ var EX, assert = require('assert'), assErrCode = 'ERR_ASSERTION',
   toStr = require('safe-tostring-pmb'),
   inspect = require('util').inspect,
   univeil = require('univeil'),
+  ersatzEllip = require('ersatz-ellip'),
+  gdcDoubleRail = require('generic-diff-context/util/doubleRail'),
   genDiffCtx = require('generic-diff-context');
 // try { re//quire('usnam-pmb'); } catch (ignore) {}
 
@@ -19,10 +21,11 @@ function ifFun(x, d) { return ((typeof x) === 'function' ? x : d); }
 function ifNum(x, d) { return (x === +x ? x : d); }
 function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
 function orf(x) { return (x || false); }
+function measure(x) { return (+(x || false).length || 0); }
+function refineIf(x, f) { return (f ? f(x) : x); }
 
-function buf2str(x) {
-  return univeil.jsonify(x.toString('latin1')).slice(1, -1);
-}
+function quotStr(s) { return univeil.jsonify(String(s)); } // ignore args 2..n
+function buf2str(x) { return quotStr(x.toString('latin1')).slice(1, -1); }
 
 function maxArgs(args, max) {
   if (args.length > max) { throw new Error('too many values'); }
@@ -176,12 +179,14 @@ EX.err = EX.throws = function throwsException(func, wantErr) {
 
 // EX.ret = nope, just use EX.err(…, false).
 
-function strDiffMsg(ex, ac, opts) {
+function uniDiffMsg(ex, ac, opt) {
   try {
-    return EX.ctrlCh(genDiffCtx(ex, ac, opts)
+    var diff = genDiffCtx(ex, ac, opt), msg;
+    msg = EX.ctrlCh((opt.diffToStr || String)(diff)
       ).replace(/(^|\n) /g, '$1='
       ).replace(/((?!\n)\s)\n/g, '$1¶\n'
       ).replace(/\n/g, '\n    ');
+    return msg;
   } catch (diffErr) {
     if (diffErr && isStr(diffErr.message)) {
       diffErr.message = 'unable to diff: ' + diffErr.message;
@@ -222,11 +227,23 @@ function numDiff(ac, ex) {
 }
 
 
-EX.tryBetterDiff = function (oper, ac, ex) {
+EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
   var diffOpts, types = type0f(ac) + ':' + type0f(ex);
   switch (types) {
   case 'string:string':
-    diffOpts = { unified: 64 };
+    diffOpts = {
+      unified: 64,
+      diffToStr: function doubleRail(diff) {
+        var report = gdcDoubleRail(diff, {
+          quot: quotStr,
+          oldRailAnnot: ' [' + measure(ex) + ']',
+          newRailAnnot: ' [' + measure(ac) + ']',
+        });
+        report = ('Strings differ. Diff hunk length(s): ['
+          + diff.map(measure).join(', ') + ']\n' + report);
+        return report;
+      },
+    };
     break;
   case 'array:array':
     diffOpts = { unified: 2 };
@@ -244,7 +261,7 @@ EX.tryBetterDiff = function (oper, ac, ex) {
   }
   if (diffOpts) {
     try {
-      ac = (strDiffMsg(ex, ac, diffOpts) || diffOpts.ifSame);
+      ac = (uniDiffMsg(ex, ac, diffOpts) || diffOpts.ifSame);
     } catch (cannotDiff) {
       return;
     }
@@ -252,7 +269,10 @@ EX.tryBetterDiff = function (oper, ac, ex) {
     return (oper + ': ' + ac);
   }
   return;
-};
+}, function refine(bDiff) {
+  return bDiff;
+});
+
 
 
 EX.fixCutoffColorCodes = function (s) {
@@ -269,7 +289,7 @@ EX.testNamesStack = [];
 EX.tryBetterErrMsg = function (err, opt) {
   EX.fixAssErrNameInplace(err);
   var msg = toStr(opt.msg || err.message || err),
-    where = EX.testNamesStack.map(JSON.stringify).join('>');
+    where = EX.testNamesStack.map(quotStr).join('>');
   msg = (opt.head || '') + msg + (opt.tail || '');
   msg = EX.fixCutoffColorCodes(msg);
   if (where) { msg = '@' + where + ': ' + msg; }

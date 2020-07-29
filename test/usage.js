@@ -4,7 +4,7 @@
 
 var eq = require('equal-pmb'), ne = eq.ne, assert = require('assert');
 
-function fails(func, a, b) { assert.throws(func.bind(null, a, b)); }
+function fails(f, a, b, e) { assert.throws(f.bind(null, a, b), e); }
 
 
 eq(true, true);
@@ -72,15 +72,20 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
 
   cmp.modif += '\n';
   cmp.mode = 'lines';
-  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -3,3 +3,3 @@",
+  eq.err(cmp, [
+    'AssertionError: deepStrictEqual: @@ -3,3 +3,3 @@',
     "=  how  ¶",  // eq adds ¶ to show you the line ends with whitespace
     "=\u21B9do you",  // eq replaces \t with two bar arrows so you see it
     "-do?",
     "\\ ¬¶",
     "+do?",
-    ].join('\n    '));
+  ].join('\n    '));
   cmp.mode = 'chars';
-  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -1,33 +1,33 @@",
+  eq.err(cmp, [
+    'AssertionError: deepStrictEqual: Strings differ. Diff hunk length(s): [3]',
+    '--- "hello\\n  world\\n  how  \\n\\tdo you\\ndo""?" …  [33]',
+    '+++ "hello\\n  world\\n  how  \\n\\tdo you\\ndo" … "?" [34]',
+    '@@ -1,33 +1,33 @@',
     "=hello",
     "^  world",
     "^  how  ¶",
@@ -89,7 +94,7 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
     "-?",
     "\\ ¬¶",
     "+?",
-    ].join('\n    '));
+  ].join('\n    '));
 
 
   cmp.orig = cmp.modif = '';
@@ -105,10 +110,14 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
     "\\ ¬¶",
     ].join('\n    '));
   cmp.mode = 'chars';
-  eq.err(cmp, [ "AssertionError: deepStrictEqual: @@ -1,0 +1,11 @@",
+  eq.err(cmp, [
+    'AssertionError: deepStrictEqual: Strings differ. Diff hunk length(s): [1]',
+    '---  …         …  [0]',
+    '+++ "Hello World" [11]',
+    '@@ -1,0 +1,11 @@',
     "+Hello World",
     "\\ ¬¶",
-    ].join('\n    '));
+  ].join('\n    '));
 
 }());
 

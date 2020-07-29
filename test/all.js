@@ -4,7 +4,7 @@
 
 require('usnam-pmb');
 
-require('./usage.js');
+require('./usage');
 
 
 

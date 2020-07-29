@@ -1,5 +1,5 @@
 { "name": "equal-pmb",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Expect two values to be equal, for whatever latest notion of equality.",
   "keywords": [ "assert", "equality", "unit testing" ],
 
@@ -23,12 +23,13 @@
   },
 
   "dependencies": {
-    "deepsortobj": "^0.1.1",
-    "generic-diff-context": "^0.2.2",
-    "getoraddkey-simple": "^0.1.5",
-    "is-error": "^2.2.1",
+    "deepsortobj": "^0.1.2",
+    "ersatz-ellip": "^1.0.3",
+    "generic-diff-context": "^0.2.4",
+    "getoraddkey-simple": "^0.1.6",
+    "is-error": "^2.2.2",
     "safe-tostring-pmb": "^1.0.2",
-    "univeil": "^0.1.14"
+    "univeil": "^0.1.17"
   },
   "devDependencies": {
     "usnam-pmb": "^0.2.4"
