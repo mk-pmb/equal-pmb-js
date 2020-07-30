@@ -83,7 +83,7 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
   cmp.mode = 'chars';
   eq.err(cmp, [
     'AssertionError: deepStrictEqual: Strings differ. Diff hunk length(s): [3]',
-    '--- "hello\\n  world\\n  how  \\n\\tdo you\\ndo""?" …  [33]',
+    '--- "hello\\n  world\\n  how  \\n\\tdo you\\ndo?" …  [33]',
     '+++ "hello\\n  world\\n  how  \\n\\tdo you\\ndo" … "?" [34]',
     '@@ -1,33 +1,33 @@',
     "=hello",
