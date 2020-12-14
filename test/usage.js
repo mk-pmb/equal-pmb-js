@@ -138,11 +138,16 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
   cmp.modif.yn = Object.assign({}, cmp.orig.yn);
   cmp();
 
+  cmp.modif = Object.assign(Object.create(null), cmp.orig);
+  eq.err(cmp, 'AssertionError: deepStrictEqual: ' +
+    'No visible difference in dump. ' +
+    'Top-level prototypes are different (null vs. [object Object]).');
+
   cmp.modif = deepCopy(cmp.orig);
   cmp.modif.yn = Object.assign(Object.create(null), cmp.orig.yn);
   eq.err(cmp, 'AssertionError: deepStrictEqual:' +
     ' No visible difference in dump.' +
-    ' Maybe a prototype mismatch?');
+    ' Top-level prototypes are strictly equal.');
 
   cmp.modif.yn['?'] = 'dunno';
   cmp.modif.say.cu = 'farewell';

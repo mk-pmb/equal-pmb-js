@@ -24,7 +24,7 @@ function orf(x) { return (x || false); }
 function measure(x) { return (+(x || false).length || 0); }
 function refineIf(x, f) { return (f ? f(x) : x); }
 
-function quotStr(s) { return univeil.jsonify(String(s)); } // ignore args 2..n
+function quotStr(s) { return univeil.jsonify(toStr(s)); } // ignore args 2..n
 function buf2str(x) { return quotStr(x.toString('latin1')).slice(1, -1); }
 
 function maxArgs(args, max) {
@@ -160,9 +160,9 @@ EX.err = EX.throws = function throwsException(func, wantErr) {
     }
     if (!wantErr) { throw result; }
     if (wantErr instanceof RegExp) {
-      if (wantErr.exec(String(result))) { return true; }
+      if (wantErr.exec(toStr(result))) { return true; }
     }
-    if (isStr(wantErr)) { result = String(result); }
+    if (isStr(wantErr)) { result = toStr(result); }
   }
   try {
     return EX(result, wantErr);
@@ -227,6 +227,13 @@ function numDiff(ac, ex) {
 }
 
 
+function comparePrototypes(ac, ex) {
+  var pac = Object.getPrototypeOf(ac), pex = Object.getPrototypeOf(ex);
+  if (pac === pex) { return 'strictly equal'; }
+  return 'different (' + toStr(pac) + ' vs. ' + toStr(pex) + ')';
+}
+
+
 EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
   var diffOpts, types = type0f(ac) + ':' + type0f(ex);
   switch (types) {
@@ -252,11 +259,13 @@ EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
     return (oper + ': expected ' + ex + ' but got ' + ac +
       ' (' + numDiff(ac, ex) + ')');
   default:
+    diffOpts = { unified: 0, finalLf: false };
+    if (ac && ex) {
+      diffOpts.ifSame = ('No visible difference in dump.'
+        + ' Top-level prototypes are ' + comparePrototypes(ac, ex) + '.');
+    }
     ac = EX.examineThoroughly(ac).split(/\n/);
     ex = EX.examineThoroughly(ex).split(/\n/);
-    diffOpts = { unified: 0, finalLf: false,
-      ifSame: 'No visible difference in dump. Maybe a prototype mismatch?'
-      };
     break;
   }
   if (diffOpts) {
