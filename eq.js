@@ -116,7 +116,6 @@ EX.fixAssErrNameInplace = function (x) {
 
 EX.verifyAssErr = function (x) {
   var e = EX.fixThrow(x);
-  EX.fixAssErrNameInplace(e);
   if (e.name === assErrName) { return true; }
   if (e.code === assErrCode) { return true; }
   throw e;
