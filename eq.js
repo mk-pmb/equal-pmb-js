@@ -72,7 +72,7 @@ EX.eq = EX.strictEqual = function equal(ac, ex) {
 };
 
 
-EX.examineThoroughly = function (x) {
+EX.examineThoroughly = function examineThoroughly(x) {
   x = inspect(sortObj(x), {
     breakLength: 3,
     colors: false,
@@ -86,7 +86,7 @@ EX.examineThoroughly = function (x) {
 };
 
 
-EX.fixThrow = function (x, ErrCls) {
+EX.fixThrow = function fixThrow(x, ErrCls) {
   if (isError(x)) {
     EX.fixAssErrNameInplace(x);
     return x;
@@ -96,7 +96,7 @@ EX.fixThrow = function (x, ErrCls) {
 };
 
 
-EX.refute = function (func, args, shallNotPass) {
+EX.refute = function refute(func, args, shallNotPass) {
   try {
     func.apply(null, args);
   } catch (caught) {
@@ -106,7 +106,7 @@ EX.refute = function (func, args, shallNotPass) {
 };
 
 
-EX.fixAssErrNameInplace = function (x) {
+EX.fixAssErrNameInplace = function fixAssErrNameInplace(x) {
   var n = (x && isStr(x.name) && x.name);
   if (!n) { return x; }
   if (n.startsWith(assErrName + ' [')) { x.name = assErrName; }
@@ -114,7 +114,7 @@ EX.fixAssErrNameInplace = function (x) {
 };
 
 
-EX.verifyAssErr = function (x) {
+EX.verifyAssErr = function verifyAssErr(x) {
   var e = EX.fixThrow(x);
   if (e.name === assErrName) { return true; }
   if (e.code === assErrCode) { return true; }
@@ -205,7 +205,7 @@ function type0f(x) {
 }
 
 
-EX.ctrlCh = function (s) {
+EX.ctrlCh = function ctrlCh(s) {
   return toStr(s).replace(/\r/g, '\u219E\n').replace(/\t/g, '\u21B9');
 };
 
@@ -283,7 +283,7 @@ EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
 
 
 
-EX.fixCutoffColorCodes = function (s) {
+EX.fixCutoffColorCodes = function fixCutoffColorCodes(s) {
   if (s.indexOf('\x1B[') < 0) { return s; }
   // strip trailing incomplete color code
   s = s.replace(/\x1B(\[[ -@]*)$/, '^$1');
@@ -306,7 +306,7 @@ EX.tryBetterErrMsg = function (err, opt) {
 };
 
 
-EX.lines = function (ac, ex) {
+EX.lines = function lines(ac, ex) {
   maxArgs(arguments, 2);
   if (ac.split) { ac = ac.split(/\n/); }
   if (ex.split) { ex = ex.split(/\n/); }
@@ -314,13 +314,13 @@ EX.lines = function (ac, ex) {
 };
 
 
-EX.chars = function (ac, ex) {
+EX.chars = function chars(ac, ex) {
   maxArgs(arguments, 2);
   return EX(toStr(ac), toStr(ex));
 };
 
 
-EX.onExitCode = function (ex, thenFunc, elseFunc) {
+EX.onExitCode = function onExitCode(ex, thenFunc, elseFunc) {
   process.once('exit', function (ac) {
     var hnd = (ac === ex ? thenFunc : elseFunc);
     if (!hnd) { return; }
