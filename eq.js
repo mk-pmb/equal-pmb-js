@@ -328,6 +328,10 @@ EX.tryBetterErrMsg = function tryBetterErrMsg(err, opt) {
   msg = opt.msg;
 
   origMsg = toStr(err.message || err);
+  origMsg = EX.uncolorize(origMsg); /*
+    Node.js v16 tries to colorize its diff when running in a terminal.
+    This would introduce even more variability when testing for expected
+    error messages, so we uncolor it. */
   if (!msg) {
     msg = replacePrefix(origMsg,
       assErrName + ' [' + assErrCode + ']', assErrName);
@@ -336,16 +340,23 @@ EX.tryBetterErrMsg = function tryBetterErrMsg(err, opt) {
   msg = EX.fixCutoffColorCodes(msg);
   err = EX.forceSetProp(err, 'message', msg);
 
-  stack = toStr(err.stack);
+  stack = EX.uncolorize(toStr(err.stack));
   stack = replacePrefix(stack,
     assErrName + ' [' + assErrCode + ']', assErrName);
   offset = stack.indexOf(origMsg);
   if (offset >= 0) {
     stack = stack.slice(0, offset) + msg + stack.slice(offset + origMsg.length);
-    err = EX.forceSetProp(err, 'stack', stack);
   }
-
+  err = EX.forceSetProp(err, 'stack', stack);
   return err;
+};
+
+
+EX.uncolorize = function uncolorize(t) {
+  if (!t) { return t; }
+  if (!isStr(t)) { return t; }
+  t = t.replace(/\x1B\[[\d;]*m/g, '');
+  return t;
 };
 
 
