@@ -22,7 +22,6 @@ function ifNum(x, d) { return (x === +x ? x : d); }
 function instanceof_safe(x, Cls) { return ifFun(Cls) && (x instanceof Cls); }
 function orf(x) { return (x || false); }
 function measure(x) { return (+(x || false).length || 0); }
-function refineIf(x, f) { return (f ? f(x) : x); }
 
 function quotStr(s) { return univeil.jsonify(toStr(s)); } // ignore args 2..n
 function buf2str(x) { return quotStr(x.toString('latin1')).slice(1, -1); }
@@ -251,7 +250,7 @@ function comparePrototypes(ac, ex) {
 }
 
 
-EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
+EX.tryBetterDiff = function tryBetterDiff(oper, ac, ex) {
   var diffOpts, types = type0f(ac) + ':' + type0f(ex);
   switch (types) {
   case 'string:string':
@@ -295,9 +294,7 @@ EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
     return (oper + ': ' + ac);
   }
   return;
-}, function refine(bDiff) {
-  return bDiff;
-});
+};
 
 
 
