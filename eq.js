@@ -31,6 +31,11 @@ function maxArgs(args, max) {
   if (args.length > max) { throw new Error('too many values'); }
 }
 
+function replacePrefix(s, p, w) {
+  if (s.slice(0, p.length) === p) { return w + s.slice(p.length); }
+  return s;
+}
+
 
 EX = function equal() { return EX.deepStrictEqual.apply(this, arguments); };
 
@@ -50,9 +55,7 @@ EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
   try {
     assert.deepStrictEqual(ac, ex);
   } catch (ass) {
-    EX.tryBetterErrMsg(ass, { msg:
-      EX.tryBetterDiff('deepStrictEqual', ac, ex) });
-    throw ass;
+    EX.throwDiff(ass, 'deepStrictEqual', ac, ex);
   }
   return true;
 };
@@ -64,9 +67,7 @@ EX.eq = EX.strictEqual = function equal(ac, ex) {
   try {
     assert.strictEqual(ac, ex);
   } catch (ass) {
-    EX.tryBetterErrMsg(ass, { msg:
-      EX.tryBetterDiff('!==', ac, ex) });
-    throw ass;
+    EX.throwDiff(ass, '!==', ac, ex);
   }
   return true;
 };
@@ -87,12 +88,34 @@ EX.examineThoroughly = function examineThoroughly(x) {
 
 
 EX.fixThrow = function fixThrow(x, ErrCls) {
-  if (isError(x)) {
-    EX.fixAssErrNameInplace(x);
-    return x;
+  var e = x;
+  if (!isError(e)) {
+    if (!ErrCls) { ErrCls = TypeError; }
+    return new ErrCls('thrown value was not an error: ' + toStr(e));
   }
-  if (!ErrCls) { ErrCls = TypeError; }
-  return new ErrCls('thrown value was not an error: ' + toStr(x));
+  e = EX.fixAssErrName(e);
+  return e;
+};
+
+
+EX.forceSetProp = function forceSetProp(o, k, v) {
+  try { o[k] = v; } catch (ignore) {}
+  if (o[k] === v) { return o; }
+  o = Object.assign(Object.create(o), o);
+  o[k] = v;
+  if (o[k] === v) { return o; }
+  v = 'Failed to assign property ' + k + ' even on newly created object!';
+  throw new Error(v);
+};
+
+
+EX.fixAssErrName = function fixAssErrName(e) {
+  var n = (e && isStr(e.name) && e.name);
+  if (!n) { return e; }
+  if (n.startsWith(assErrName + ' [')) {
+    e = EX.forceSetProp(e, 'name', assErrName);
+  }
+  return e;
 };
 
 
@@ -103,14 +126,6 @@ EX.refute = function refute(func, args, shallNotPass) {
     return EX.verifyAssErr(caught);
   }
   throw new AssErr(shallNotPass || { message: 'E_UNEXPECTED' });
-};
-
-
-EX.fixAssErrNameInplace = function fixAssErrNameInplace(x) {
-  var n = (x && isStr(x.name) && x.name);
-  if (!n) { return x; }
-  if (n.startsWith(assErrName + ' [')) { x.name = assErrName; }
-  return x;
 };
 
 
@@ -137,12 +152,13 @@ EX.nse = EX.notStrictEqual = function notStrictEqual(ac, ex) {
 
 
 EX.err = EX.throws = function throwsException(func, wantErr) {
+  var result, wasCaught = false;
   if (!ifFun(func)) {
     throw new TypeError('equal.err needs a function, not ' +
       EX.examineThoroughly(func));
   }
   maxArgs(arguments, 2);
-  var result, wasCaught = false;
+  if (isError(wantErr)) { wantErr = EX.errToStr(wantErr); }
   try {
     result = { ret: func() };
     if (!wantErr) { return true; }
@@ -154,26 +170,28 @@ EX.err = EX.throws = function throwsException(func, wantErr) {
     if (instanceof_safe(result, wantErr)) { return true; }
     if (isError(result)) {
       if (wantErr === true) { return true; }
-    } else {
-      result = EX.fixThrow(result);
+      result = EX.tryBetterErrMsg(result);
     }
     if (!wantErr) { throw result; }
     if (wantErr instanceof RegExp) {
-      if (wantErr.exec(toStr(result))) { return true; }
+      if (wantErr.exec(EX.errToStr(result))) { return true; }
     }
-    if (isStr(wantErr)) { result = toStr(result); }
+    if (isStr(wantErr) || isAry(wantErr)) { result = EX.errToStr(result); }
   }
   try {
     return EX(result, wantErr);
   } catch (notSameErr) {
     if (wasCaught) {
       // optimize error message
-      return EX.lines(toStr(result), toStr(wantErr));
+      return EX.lines(result, wantErr);
     }
     throw notSameErr;
   }
   throw new Error('Unexpected control flow');
 };
+
+
+EX.errToStr = function errToStr(err) { return err.name + ': ' + err.message; };
 
 
 // EX.ret = nope, just use EX.err(…, false).
@@ -283,6 +301,12 @@ EX.tryBetterDiff = refineIf(function bDiff(oper, ac, ex) {
 
 
 
+EX.throwDiff = function throwDiff(origErr, op, ac, ex) {
+  throw EX.tryBetterErrMsg(origErr, { msg: EX.tryBetterDiff(op, ac, ex) });
+};
+
+
+
 EX.fixCutoffColorCodes = function fixCutoffColorCodes(s) {
   if (s.indexOf('\x1B[') < 0) { return s; }
   // strip trailing incomplete color code
@@ -294,14 +318,36 @@ EX.fixCutoffColorCodes = function fixCutoffColorCodes(s) {
 
 
 EX.testNamesStack = [];
-EX.tryBetterErrMsg = function (err, opt) {
-  EX.fixAssErrNameInplace(err);
-  var msg = toStr(opt.msg || err.message || err),
+EX.tryBetterErrMsg = function tryBetterErrMsg(err, opt) {
+  var where = '', msg, origMsg, stack, offset;
+  err = EX.fixThrow(err);
+
+  if (!err.testNamesStack) {
     where = EX.testNamesStack.map(quotStr).join('>');
-  msg = (opt.head || '') + msg + (opt.tail || '');
+    if (where) { where = '@' + where + ': '; }
+    err = EX.forceSetProp(err, 'testNamesStack', EX.testNamesStack.concat());
+  }
+  opt = orf(opt);
+  msg = opt.msg;
+
+  origMsg = toStr(err.message || err);
+  if (!msg) {
+    msg = replacePrefix(origMsg,
+      assErrName + ' [' + assErrCode + ']', assErrName);
+  }
+  msg = where + (opt.head || '') + msg + (opt.tail || '');
   msg = EX.fixCutoffColorCodes(msg);
-  if (where) { msg = '@' + where + ': ' + msg; }
-  err.message = msg;
+  err = EX.forceSetProp(err, 'message', msg);
+
+  stack = toStr(err.stack);
+  stack = replacePrefix(stack,
+    assErrName + ' [' + assErrCode + ']', assErrName);
+  offset = stack.indexOf(origMsg);
+  if (offset >= 0) {
+    stack = stack.slice(0, offset) + msg + stack.slice(offset);
+    err = EX.forceSetProp(err, 'stack', stack);
+  }
+
   return err;
 };
 
@@ -351,8 +397,7 @@ EX.lists = function cmpLists(ac, ex) {
   } catch (err) {
     ass = err;
   }
-  EX.tryBetterErrMsg(ass, { head: nSame + ' common items, then: ' });
-  throw ass;
+  throw EX.tryBetterErrMsg(ass, { head: nSame + ' common items, then: ' });
 };
 EX.lists.dumpLongerList = 0;
 
