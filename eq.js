@@ -341,7 +341,7 @@ EX.tryBetterErrMsg = function tryBetterErrMsg(err, opt) {
     assErrName + ' [' + assErrCode + ']', assErrName);
   offset = stack.indexOf(origMsg);
   if (offset >= 0) {
-    stack = stack.slice(0, offset) + msg + stack.slice(offset);
+    stack = stack.slice(0, offset) + msg + stack.slice(offset + origMsg.length);
     err = EX.forceSetProp(err, 'stack', stack);
   }
 
