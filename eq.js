@@ -360,10 +360,17 @@ EX.uncolorize = function uncolorize(t) {
 };
 
 
+EX.forceStringSplitLines = function forceStringSplitLines(x) {
+  if (!x) { x = String(x); }
+  if (x instanceof RegExp) { x = '[RegExp ' + x + ']'; }
+  return String(x).split(/\n/);
+};
+
+
 EX.lines = function lines(ac, ex) {
   maxArgs(arguments, 2);
-  if (ac.split) { ac = ac.split(/\n/); }
-  if (ex.split) { ex = ex.split(/\n/); }
+  ac = EX.forceStringSplitLines(ac);
+  ex = EX.forceStringSplitLines(ex);
   return EX(ac, ex);
 };
 
