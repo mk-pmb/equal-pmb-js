@@ -39,7 +39,7 @@ function replacePrefix(s, p, w) {
 EX = function equal() { return EX.deepStrictEqual.apply(this, arguments); };
 
 
-function nonStandardObviousEq(ac, ex) {
+function nonStandardObviousEq(ex, ac) {
   if (Number.isNaN(ex)) {
     if (Number.isNaN(ac)) { return true; }
     throw new AssErr('Expected NaN but got: ' + toStr(ac));
@@ -50,9 +50,9 @@ function nonStandardObviousEq(ac, ex) {
 
 EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
   maxArgs(arguments, 2);
-  if (nonStandardObviousEq(ac, ex)) { return true; }
+  if (nonStandardObviousEq(ex, ac)) { return true; }
   try {
-    assert.deepStrictEqual(ac, ex);
+    assert.deepStrictEqual(ex, ac);
   } catch (ass) {
     EX.throwDiff(ass, 'deepStrictEqual', ac, ex);
   }
@@ -62,7 +62,7 @@ EX.deepEq = EX.deepStrictEqual = function equal(ac, ex) {
 
 EX.eq = EX.strictEqual = function equal(ac, ex) {
   maxArgs(arguments, 2);
-  if (nonStandardObviousEq(ac, ex)) { return true; }
+  if (nonStandardObviousEq(ex, ac)) { return true; }
   try {
     assert.strictEqual(ac, ex);
   } catch (ass) {
