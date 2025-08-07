@@ -23,16 +23,17 @@
   },
 
   "dependencies": {
-    "deepsortobj": "^0.1.2",
+    "deepsortobj": "^0.1.3",
     "ersatz-ellip": "^1.0.3",
     "generic-diff-context": "^0.2.5",
-    "getoraddkey-simple": "^0.1.6",
+    "getoraddkey-simple": "^0.1.8",
     "is-error": "^2.2.2",
     "safe-tostring-pmb": "^1.0.2",
-    "univeil": "^0.1.17"
+    "univeil": "^0.1.19"
   },
   "devDependencies": {
-    "usnam-pmb": "^0.2.4"
+    "decide-value-by-dotted-version-pmb": "^0.0.1",
+    "usnam-pmb": "^0.2.5"
   },
 
 
