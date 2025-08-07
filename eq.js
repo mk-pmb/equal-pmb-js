@@ -361,6 +361,7 @@ EX.uncolorize = function uncolorize(t) {
 
 
 EX.forceStringSplitLines = function forceStringSplitLines(x) {
+  if (isAry(x)) { x = x.join('\n'); }
   if (!x) { x = String(x); }
   if (x instanceof RegExp) { x = '[RegExp ' + x + ']'; }
   return String(x).split(/\n/);
