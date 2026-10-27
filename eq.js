@@ -293,7 +293,6 @@ EX.tryBetterDiff = function tryBetterDiff(oper, ac, ex) {
     if (!ac) { return; }
     return (oper + ': ' + ac);
   }
-  return;
 };
 
 
@@ -434,11 +433,9 @@ EX.named = (function (popping, nt) {
     var args = arSlc.call(arguments, 1);
     try {
       f.apply(this, args);
-    } catch (err) {
+    } finally {
       EX.testNamesStack.pop();
-      throw err;
     }
-    EX.testNamesStack.pop();
   };
 }));
 
