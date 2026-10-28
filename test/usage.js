@@ -296,4 +296,4 @@ eq.named('named tests', function () {
 
 
 
-/*scroll*/
+console.info('+OK usage tests passed.');
