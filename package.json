@@ -1,7 +1,11 @@
 { "name": "equal-pmb",
   "version": "0.1.29",
   "description": "Expect two values to be equal, for whatever latest notion of equality.",
-  "keywords": [ "assert", "equality", "unit testing" ],
+  "keywords": [
+    "assert",
+    "equality",
+    "unit testing"
+  ],
 
   "author": "M.K. (https://github.com/mk-pmb)",
   "homepage": "https://github.com/mk-pmb/equal-pmb-js#readme",
