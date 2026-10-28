@@ -20,6 +20,9 @@ jobs:
       matrix:
         node-version:
           - 8
+          - 12
+          - 16
+          - 20
 
     steps:
       - uses: actions/checkout@v4

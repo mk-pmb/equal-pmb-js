@@ -166,7 +166,7 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
       "    +   { '?': 'dunno',",
       "    +     n: false,",
       ],
-    16: ['AssertionError: deepStrictEqual: @@ -9 +9,2 @@',
+    12: ['AssertionError: deepStrictEqual: @@ -9 +9,2 @@',
       '    -    4',
       '    +    4,',
       '    +    Infinity',
@@ -191,10 +191,14 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
   cmp();
   reverseCmp();
 
+  function commonItemsThen(n, v) {
+    return 'AssertionError: ' + n + ' common items, then: ' + nodeVerVal(v);
+  }
+
   push.call(b, 'cheese');
-  eq.err(cmp, "AssertionError: 3 common items, then: " + nodeVerVal({
+  eq.err(cmp, commonItemsThen(3, {
     8: "[] deepStrictEqual [ 'cheese' ]",
-    16: ['Expected values to be strictly deep-equal:',
+    12: ['Expected values to be strictly deep-equal:',
       '+ actual - expected',
       '',
       '+ []',
@@ -203,9 +207,9 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
       '- ]',
       ].join('\n')
   }));
-  eq.err(reverseCmp, "AssertionError: 3 common items, then: " + nodeVerVal({
+  eq.err(reverseCmp, commonItemsThen(3, {
     8: "[ 'cheese' ] deepStrictEqual []",
-    16: ['Expected values to be strictly deep-equal:',
+    12: ['Expected values to be strictly deep-equal:',
       '+ actual - expected',
       '',
       '+ [',
@@ -216,51 +220,51 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
   }));
 
   a.push('onion', 'cheese');
-  eq.err(cmp, "AssertionError: 3 common items, then: " + nodeVerVal({
+  eq.err(cmp, commonItemsThen(3, {
     8: "[ 'onion', 'cheese' ] deepStrictEqual [ 'cheese' ]",
-    16: ['Expected values to be strictly deep-equal:',
-      '+ actual - expected',
-      '',
-      '  [',
-      "+   'onion',",
-      "    'cheese'",
-      '  ]',
+    12: ['Expected values to be strictly deep-equal:',
+        '+ actual - expected',
+        '',
+        '  [',
+        "+   'onion',",
+        "    'cheese'",
+        '  ]',
       ].join('\n'),
   }));
-  eq.err(reverseCmp, "AssertionError: 3 common items, then: " + nodeVerVal({
+  eq.err(reverseCmp, commonItemsThen(3, {
     8: "[ 'cheese' ] deepStrictEqual [ 'onion', 'cheese' ]",
-    16: ['Expected values to be strictly deep-equal:',
-      '+ actual - expected',
-      '',
-      '  [',
-      "-   'onion',",
-      "    'cheese'",
-      '  ]',
+    12: ['Expected values to be strictly deep-equal:',
+        '+ actual - expected',
+        '',
+        '  [',
+        "-   'onion',",
+        "    'cheese'",
+        '  ]',
       ].join('\n'),
   }));
 
   b[3] = 'onion';
   b[4] = 'cheese';
-  eq.err(cmp, "AssertionError: 4 common items, then: " + nodeVerVal({
+  eq.err(cmp, commonItemsThen(4, {
     8: "[ 'cheese' ] deepStrictEqual []",
-    16: ['Expected values to be strictly deep-equal:',
-      '+ actual - expected',
-      '',
-      '+ [',
-      "+   'cheese'",
-      '+ ]',
-      '- []',
+    12: ['Expected values to be strictly deep-equal:',
+        '+ actual - expected',
+        '',
+        '+ [',
+        "+   'cheese'",
+        '+ ]',
+        '- []',
       ].join('\n'),
   }));
-  eq.err(reverseCmp, "AssertionError: 4 common items, then: " + nodeVerVal({
+  eq.err(reverseCmp, commonItemsThen(4, {
     8: "[] deepStrictEqual [ 'cheese' ]",
-    16: ['Expected values to be strictly deep-equal:',
-      '+ actual - expected',
-      '',
-      '+ []',
-      '- [',
-      "-   'cheese'",
-      '- ]',
+    12: ['Expected values to be strictly deep-equal:',
+        '+ actual - expected',
+        '',
+        '+ []',
+        '- [',
+        "-   'cheese'",
+        '- ]',
       ].join('\n'),
   }));
   // why?
