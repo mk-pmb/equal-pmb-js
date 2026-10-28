@@ -192,6 +192,7 @@ fails(eq.err, makeReturn('hello'), [ [ true ] ]);
   reverseCmp();
 
   function commonItemsThen(n, v) {
+    v[22] = v[12] + '\n';
     return 'AssertionError: ' + n + ' common items, then: ' + nodeVerVal(v);
   }
 
